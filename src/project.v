@@ -1,6 +1,6 @@
 `default_nettype none
 
-module tt_um_piano (
+module tt_um_uabc_piano (
     input  wire [7:0] ui_in,    // [6:0] Teclas blancas (Si..Do), [7] timbre[0]
     output wire [7:0] uo_out,   // [0] Audio Sigma-Delta, [7:1] Display 7-seg (g..a)
     input  wire [7:0] uio_in,   // [4:0] Teclas negras, [6:5] Octava, [7] timbre[1]
@@ -33,9 +33,7 @@ module tt_um_piano (
         ui_in[0]    //  0: Do  (C)
     };
 
-    // =========================================================================
     // 1. ASIGNADOR DE 3 VOCES (Polifonía de 3 notas simultáneas)
-    // =========================================================================
     reg [3:0] note1, note2, note3;
     reg       active1, active2, active3;
     integer   i;
@@ -90,9 +88,7 @@ module tt_um_piano (
     wire trig2 = active2 && (!prev_act2 || (note2 != prev_note2));
     wire trig3 = active3 && (!prev_act3 || (note3 != prev_note3));
 
-    // =========================================================================
     // 2. TABLA DE INCREMENTOS DE FASE (Octava 2 @ 10 MHz, Acumulador 20 bits)
-    // =========================================================================
     function [15:0] get_base_step;
         input [3:0] n;
         begin
@@ -118,9 +114,7 @@ module tt_um_piano (
     wire [19:0] step2 = {4'd0, get_base_step(note2)} << octave;
     wire [19:0] step3 = {4'd0, get_base_step(note3)} << octave;
 
-    // =========================================================================
     // 3. TRIPLE ACUMULADOR DE FASE (NCO de 20 bits x 3)
-    // =========================================================================
     reg [19:0] phase1, phase2, phase3;
 
     always @(posedge clk) begin
@@ -162,9 +156,7 @@ module tt_um_piano (
     wire [7:0] raw_wave2 = shape_wave(phase2, timbre);
     wire [7:0] raw_wave3 = shape_wave(phase3, timbre);
 
-    // =========================================================================
     // 5. ENVOLVENTE SIN MULTIPLICADORES (3 Canales Independientes)
-    // =========================================================================
     reg [15:0] env_tick_cnt;
     wire       env_tick = (env_tick_cnt == 16'd40959);
 
@@ -226,9 +218,7 @@ module tt_um_piano (
     wire [7:0] voice2 = apply_env(raw_wave2, env2);
     wire [7:0] voice3 = apply_env(raw_wave3, env3);
 
-    // =========================================================================
     // 6. MEZCLADOR DE 3 VOCES Y MODULADOR SIGMA-DELTA (uo_out[0])
-    // =========================================================================
     wire [9:0] mixed_audio = {2'b00, voice1} + {2'b00, voice2} + {2'b00, voice3};
     wire       any_active  = active1 || active2 || active3;
     wire [7:0] dac_in      = any_active ? mixed_audio[9:2] : 8'd128;
@@ -244,10 +234,7 @@ module tt_um_piano (
 
     assign uo_out[0] = sd_accum[8];
 
-// =========================================================================
     // 7. DECODIFICADOR DE DISPLAY 7 SEGMENTOS (uo_out[7:1] = {g,f,e,d,c,b,a})
-    //    Compatible directo con el display onboard de Tiny Tapeout (Cátodo común)
-    // =========================================================================
     reg [6:0] seg7;
 
     always @(*) begin
