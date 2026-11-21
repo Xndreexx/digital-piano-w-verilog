@@ -2,12 +2,13 @@ import cocotb
 from cocotb.clock import Clock
 from cocotb.triggers import ClockCycles
 
+
 @cocotb.test()
 async def test_project(dut):
     dut._log.info("Start Piano Simulation")
 
-    # Reloj de 10 MHz (periodo 100 ns)
-    clock = Clock(dut.clk, 100, units="ns")
+    # Reloj de 10 MHz (periodo 100 ns) - en cocotb 2.1.0 se usa 'unit' en singular
+    clock = Clock(dut.clk, 100, unit="ns")
     cocotb.start_soon(clock.start())
 
     # Reset inicial
