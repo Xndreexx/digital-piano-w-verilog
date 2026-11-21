@@ -14,8 +14,7 @@ project:
   top_module:  "tt_um_uabc_piano"
 
   # List your project's source files here.
-  source_files:
-       - "project.v"
+  source_files: ["project.v"]
 
 # The pinout of your project. Leave unused pins blank. DO NOT delete or add any pins.
 pinout:
